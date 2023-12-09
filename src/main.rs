@@ -54,7 +54,6 @@ fn main() {
                 let pmtwofive = pm25 as f32 / 10.0;
                 let pmten = pm10 as f32 / 10.0;
                 println!("PM10={} PM25={}", pmten, pmtwofive);
-                println!("{}", buffer.len());
             }
             Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(e) => eprintln!("{:?}", e),

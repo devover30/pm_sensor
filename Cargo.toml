@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 derive_more = "0.99.17"
-serialport = "4.2.2"
+serialport = {version = "4.2.2", default-features = false}
