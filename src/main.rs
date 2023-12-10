@@ -39,6 +39,7 @@ fn main() {
 
     println!("Receiving data on {} at {} baud:", "/dev/ttyUSBO", 9600);
     loop {
+        thread::sleep(delay);
         let mut buffer = [0u8; 10];
         //let raw = sensor.get_reply().expect("");
         //let pm25_ar = [raw[2], raw[3]];
@@ -61,7 +62,6 @@ fn main() {
             Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(e) => eprintln!("{:?}", e),
         }
-        thread::sleep(delay)
     }
     //let mut serial_buf: Vec<u8> = vec![0; 32];
     //let data = port
