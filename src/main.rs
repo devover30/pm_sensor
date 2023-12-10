@@ -1,6 +1,7 @@
 use serialport::{DataBits, FlowControl, Parity, StopBits};
 use std::mem::transmute;
-use std::{io, process};
+use std::time::Duration;
+use std::{io, process, thread};
 mod error;
 pub use error::*;
 
@@ -33,6 +34,8 @@ fn main() {
     //let mut sensor = SDS011 {
     //    port: port.try_clone().expect(""),
     //};
+    //
+    let delay = Duration::from_secs(10);
 
     println!("Receiving data on {} at {} baud:", "/dev/ttyUSBO", 9600);
     loop {
@@ -58,7 +61,7 @@ fn main() {
             Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(e) => eprintln!("{:?}", e),
         }
-        //thread::sleep(delay)
+        thread::sleep(delay)
     }
     //let mut serial_buf: Vec<u8> = vec![0; 32];
     //let data = port
