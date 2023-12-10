@@ -1,5 +1,4 @@
 use serialport::{DataBits, FlowControl, Parity, StopBits};
-use std::mem::transmute;
 use std::time::Duration;
 use std::{io, process, thread};
 mod error;
@@ -11,6 +10,9 @@ pub use error::*;
 //}
 
 fn main() {
+    /*
+     * Open port with baudrate at 9600
+     */
     let mut port = serialport::new("/dev/ttyUSB0", 9600)
         .data_bits(DataBits::Eight)
         .flow_control(FlowControl::None)
@@ -35,26 +37,33 @@ fn main() {
     //    port: port.try_clone().expect(""),
     //};
     //
+    /*
+     * Set delay to read data from sensor at regular intervals
+     */
     let delay = Duration::from_secs(10);
 
     println!("Receiving data on {} at {} baud:", "/dev/ttyUSBO", 9600);
     loop {
-        thread::sleep(delay);
         let mut buffer = [0u8; 10];
-        //let raw = sensor.get_reply().expect("");
-        //let pm25_ar = [raw[2], raw[3]];
-        //let pm10_ar = [raw[4], raw[5]];
-        //let pm25: u16 = unsafe { transmute::<[u8; 2], u16>(pm25_ar) }.to_le();
-        //let pm10: u16 = unsafe { transmute::<[u8; 2], u16>(pm10_ar) }.to_le();
-        //let pmtwofive = pm25 as f32 / 10.0;
-        //let pmten = pm10 as f32 / 10.0;
-        //println!("PM10={} PM25={}", pmten, pmtwofive);
+        /*
+         * Read data from port into buffer of
+         * u8 bytes of size 10 bytes as sensor
+         * send exact 10 bytes only.
+         */
         match port.read_exact(buffer.as_mut()) {
             Ok(_) => {
+                /*
+                 * extract second lowbyte and third hightbyte
+                 * as it's pm2.5 data
+                 */
                 let pm25_ar = [buffer[2], buffer[3]];
+                /*
+                 * extract fourth lowbyte and fifith hightbyte
+                 * as it's pm10 data
+                 */
                 let pm10_ar = [buffer[4], buffer[5]];
-                let pm25: u16 = unsafe { transmute::<[u8; 2], u16>(pm25_ar) }.to_le();
-                let pm10: u16 = unsafe { transmute::<[u8; 2], u16>(pm10_ar) }.to_le();
+                let pm10: u16 = u16::from_le_bytes(pm10_ar);
+                let pm25: u16 = u16::from_le_bytes(pm25_ar);
                 let pmtwofive = pm25 as f32 / 10.0;
                 let pmten = pm10 as f32 / 10.0;
                 println!("PM10={} PM25={}", pmten, pmtwofive);
@@ -62,12 +71,15 @@ fn main() {
             Err(ref e) if e.kind() == io::ErrorKind::TimedOut => (),
             Err(e) => eprintln!("{:?}", e),
         }
+        /*
+         * clear input/read buffer data
+         * otherwise it overflows if delay is required
+         */
+
+        port.clear(serialport::ClearBuffer::Input)
+            .expect("Clear buffer err");
+        thread::sleep(delay);
     }
-    //let mut serial_buf: Vec<u8> = vec![0; 32];
-    //let data = port
-    //    .read(serial_buf.as_mut_slice())
-    //    .expect("Found no data!");
-    //println!("{}", data);
 }
 
 //impl SDS011 {
